@@ -1,0 +1,48 @@
+---
+jobs:
+  gh-test:
+    machine:
+      image: ubuntu-2004:202111-02
+    resource_class: medium
+    steps:
+      - checkout
+      - run:
+          name: Install gh command
+          command: |
+            curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | sudo dd of=/usr/share/keyrings/githubcli-archive-keyring.gpg
+            echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | sudo tee /etc/apt/sources.list.d/github-cli.list > /dev/null
+            sudo apt update
+            sudo apt install gh
+      - run:
+          name: Run test
+          command: |
+            bash delete-initial-labels.sh
+            bash create-initial-labels.sh
+            gh label list
+          environment:
+            # GITHUB_TOKENS: sotred in CircleCI environment variables
+      - run:
+          name: Show gh version
+          command: |
+            gh version
+  trailing-whitespace:
+    docker:
+      - image: ghcr.io/docker-hub-tm/circleci-executors/trailing-whitespace:latest
+    resource_class: small
+    steps:
+      - checkout
+      - run:
+          name: Execute trailing-whitespace
+          command: trailing-whitespace
+
+
+version: 2.1
+workflows:
+  version: 2
+  build:
+    jobs:
+      - trailing-whitespace
+      - gh-test:
+          context: GITHUB_ISSUE
+          requires:
+            - trailing-whitespace
