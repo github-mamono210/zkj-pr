@@ -20,7 +20,7 @@ jobs:
             bash create-initial-labels.sh
             gh label list
           environment:
-            # GITHUB_TOKENS: sotred in CircleCI environment variables
+            # GH_TOKEN: sotred in CircleCI environment variables
       - run:
           name: Show gh version
           command: |
